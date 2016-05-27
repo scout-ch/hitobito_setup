@@ -1,0 +1,7 @@
+hitobito:
+  git: https://github.com/hitobito/hitobito.git
+wagons:
+  hitobito_youth:
+    git: https://github.com/hitobito/hitobito_youth.git
+  hitobito_pbs:
+    git: https://github.com/hitobito/hitobito_pbs.git

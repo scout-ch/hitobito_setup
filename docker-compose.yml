@@ -1,0 +1,25 @@
+version: '2'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+        #volumes:
+      #- .:/code
+    environment:
+      DATABASE_URL: 'mysql2://hitobito:wcxW2pNXHKkAp8hF2jVJywvulVokkAu@db:3306/hitobito'
+      APP_PORT: 3000
+  redis:
+    image: "redis:alpine"
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: hguyFtgfR4r9R4r76
+      MYSQL_DATABASE: hitobito
+      MYSQL_USER: hitobito
+      MYSQL_PASSWORD: wcxW2pNXHKkAp8hF2jVJywvulVokkAu
+    expose:
+      - "3306"
+    restart: always
