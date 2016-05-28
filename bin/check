@@ -1,0 +1,30 @@
+#!/bin/zsh
+
+source ~/.zshrc
+
+wagons=('hitobito' 'hitobito_youth' 'hitobito_pbs')
+
+for wagon in $wagons
+do
+    cd "./$wagon"
+    echo "Checking $wagon"
+    echo "++++++++++++++++++++"
+
+    rbenv rehash
+
+    bundle exec rubocop -D -c rubocop-must.yml --fail-fast
+    if [ ! $? -eq 0 ]; then
+      echo 'rubocop detected issues!'
+      bundle exec rubocop -a -D -c .rubocop.yml
+      echo 'Tried to auto correct the issues, but must be reviewed manually, commit aborted'
+      exit 1
+    fi
+
+    bundle exec rspec
+    if [ ! $? -eq 0 ]; then
+      echo 'rspec did not run successfully, commit aborted'
+      exit 1
+    fi
+
+    cd ".."
+done
