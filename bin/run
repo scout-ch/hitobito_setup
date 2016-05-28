@@ -1,0 +1,3 @@
+cd hitobito
+bundle exec rails s
+
