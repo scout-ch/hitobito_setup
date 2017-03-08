@@ -1,21 +1,22 @@
 #!/usr/bin/env ruby
 require 'pathname'
-
-APPS_ROOT = Pathname.new File.expand_path('../../', __FILE__)
-APP_ROOT = Pathname.new File.expand_path('hitobito/', APPS_ROOT)
-WAGONS = { 
-  hitobito_youth: 'https://github.com/hitobito/hitobito_youth.git',
-  hitobito_pbs: 'https://github.com/hitobito/hitobito_pbs.git'
-}.freeze
+require 'yaml'
+WAGON_ROOT = Pathname.new File.expand_path('../../', __FILE__)
+APP_ROOT = Pathname.new File.expand_path('hitobito/', WAGON_ROOT)
+wagons = YAML.load_file('wagons.yml')
 
 def clone_or_pull(app, repo_url)
-  system "git -C #{app} pull || git clone #{repo_url} #{app}"
+  system "git clone #{repo_url} #{app}"
+rescue 
+  nil
 end
 
-Dir.chdir APPS_ROOT do
-  puts "In #{APPS_ROOT}"
-  puts '== Installing Wagons=='
-  clone_or_pull(:hitobito, 'https://github.com/hitobito/hitobito.git')
+if wagons
+  Dir.chdir WAGON_ROOT do
+    puts "In #{WAGON_ROOT}"
+    puts '== Installing Hitobito=='
+    clone_or_pull(:hitobito, wagons.dig('hitobito', 'git'))
+  end
 end
 
 Dir.chdir APP_ROOT do
@@ -25,17 +26,18 @@ Dir.chdir APP_ROOT do
 
   old_gemfile = File.open('Gemfile').read
   File.open('Gemfile', 'w') do |gemfile|
-    gemfile << old_gemfile.gsub("gem 'mysql2', '0.3.15'", "gem 'mysql2', '0.3.17'").gsub("gem 'therubyracer'", "#gem 'therubyracer'")
+    gemfile << old_gemfile.gsub("gem 'mysql2', '0.3.15'", "gem 'mysql2', '0.3.17'")
   end
 
   system 'bundle install --jobs=3 --retry=3'
 end
 
-Dir.chdir APPS_ROOT do
-  puts "In #{APPS_ROOT}"
+Dir.chdir WAGON_ROOT do
+  puts "In #{WAGON_ROOT}"
   puts '== Installing Wagons=='
-  WAGONS.each do |wagon, repo_url|
-    clone_or_pull(wagon, repo_url)
+  # Dir[File.expand_path('../../hitobito_*/*.gemspec', __FILE__)]
+  wagons['wagons'].each do |wagon, wagon_config|
+    clone_or_pull(wagon, wagon_config['git'])
     system "cp hitobito/Gemfile.lock #{wagon}/"
   end
   system 'cp hitobito/Wagonfile.ci hitobito/Wagonfile'
@@ -43,11 +45,11 @@ end
 
 Dir.chdir APP_ROOT do
   puts "In #{APP_ROOT}"
-#  puts "\n== Copying sample files =="
-#  system 'cp config/application.example.yml config/application.yml' unless File.exist?('config/application.yml')
+  puts "\n== Copying sample files =="
+  system 'cp config/application.example.yml config/application.yml' unless File.exist?('config/application.yml')
 
   puts "\n== Preparing database =="
-  system 'bundle exec rake db:create:all db:setup:all'
+  system 'bundle exec rake db:create:all db:setup:all --trace'
   system 'bundle exec rake db:migrate RAILS_ENV=test'
 
   puts "\n== Removing old logs and tempfiles =="

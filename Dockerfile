@@ -7,19 +7,17 @@ ENV BUNDLE_PATH $APP/hitobito/vendor/bundle
 RUN mkdir $APP || true
 ARG APP_PORT
 
-RUN apt-get update -qq && apt-get install -y build-essential
-RUN apt-get install -y libxml2-dev libxslt1-dev
-RUN apt-get install -y libqt4-webkit libqt4-dev xvfb
-RUN apt-get install -y nodejs
+RUN apt-get update -qq && apt-get install -y build-essential \
+ libxml2-dev libxslt1-dev libqt4-webkit libqt4-dev xvfb nodejs
 RUN gem install bundler
+RUN gem install foreman
 #ADD hitobito/Gemfile hitobito/Gemfile.lock hitobito/.ruby-version ./
 #RUN sed -i "s/^\(gem .mysql2.\),.*$/\1/" hitobito/Gemfile
 # RUN bundle install --deployment --jobs 20 --retry 5
 
-ADD . $APP
-#RUN sed -i "s/^\(gem .mysql2.\),.*$/\1/" Gemfile
-#RUN bundle install --jobs 20 --retry 5
+ADD ./bin $APP/bin
+ADD ./wagons.yml $APP
 
-RUN ./bin/docker_setup
-CMD ./hitobito/bin/rails s -p $APP_PORT -b 0.0.0.0
+RUN ./bin/setup
+CMD ./bin/run
 #EXPOSE $APP_PORT
