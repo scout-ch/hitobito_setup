@@ -11,14 +11,6 @@ rescue
   nil
 end
 
-if wagons
-  Dir.chdir WAGON_ROOT do
-    puts "In #{WAGON_ROOT}"
-    puts '== Installing Hitobito=='
-    clone_or_pull(:hitobito, wagons.dig('hitobito', 'git'))
-  end
-end
-
 Dir.chdir APP_ROOT do
   puts "In #{APP_ROOT}"
   puts '== Installing dependencies =='
@@ -29,18 +21,13 @@ Dir.chdir APP_ROOT do
     gemfile << old_gemfile.gsub("gem 'mysql2', '0.3.15'", "gem 'mysql2', '0.3.17'")
   end
 
-  system 'bundle install --jobs=3 --retry=3'
-end
+  # system 'sed -i "s/^\(gem .mysql2.\),.*$/\1/" Gemfile'
+  system 'bundle install --path vendor/bundle --jobs=3 --retry=3'
 
-Dir.chdir WAGON_ROOT do
-  puts "In #{WAGON_ROOT}"
-  puts '== Installing Wagons=='
-  # Dir[File.expand_path('../../hitobito_*/*.gemspec', __FILE__)]
-  wagons['wagons'].each do |wagon, wagon_config|
-    clone_or_pull(wagon, wagon_config['git'])
-    system "cp hitobito/Gemfile.lock #{wagon}/"
+  Dir[File.expand_path('../../hitobito_*/*.gemspec', __FILE__)].each do |wagon|
+    system "cp ./Gemfile.lock #{File.dirname(wagon)}"
   end
-  system 'cp hitobito/Wagonfile.ci hitobito/Wagonfile'
+  system 'cp ./Wagonfile.ci ./Wagonfile'
 end
 
 Dir.chdir APP_ROOT do

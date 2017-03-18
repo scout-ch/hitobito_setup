@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+require 'pathname'
+require 'yaml'
+WAGON_ROOT = Pathname.new File.expand_path('../../', __FILE__)
+APP_ROOT = Pathname.new File.expand_path('hitobito/', WAGON_ROOT)
+wagons = YAML.load_file('wagons.yml')
+
+def clone_or_pull(app, repo_url)
+  system "git clone #{repo_url} #{app}"
+rescue 
+  nil
+end
+
+if wagons
+  Dir.chdir WAGON_ROOT do
+    puts "In #{WAGON_ROOT}"
+    puts '== Installing Hitobito=='
+    clone_or_pull(:hitobito, wagons.dig('hitobito', 'git'))
+  end
+end
+
+Dir.chdir WAGON_ROOT do
+  puts "In #{WAGON_ROOT}"
+  puts '== Installing Wagons=='
+  wagons['wagons'].each do |wagon, wagon_config|
+    clone_or_pull(wagon, wagon_config['git'])
+  end
+end
