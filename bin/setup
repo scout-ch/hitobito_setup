@@ -23,6 +23,7 @@ Dir.chdir APP_ROOT do
 
   # system 'sed -i "s/^\(gem .mysql2.\),.*$/\1/" Gemfile'
   system 'bundle install --path vendor/bundle --jobs=3 --retry=3'
+  system 'bundle update mysql2'
 
   Dir[File.expand_path('../../hitobito_*/*.gemspec', __FILE__)].each do |wagon|
     system "cp ./Gemfile.lock #{File.dirname(wagon)}"
@@ -32,8 +33,8 @@ end
 
 Dir.chdir APP_ROOT do
   puts "In #{APP_ROOT}"
-  puts "\n== Copying sample files =="
-  system 'cp config/application.example.yml config/application.yml' unless File.exist?('config/application.yml')
+  # puts "\n== Copying sample files =="
+  # system 'cp config/application.example.yml config/application.yml' unless File.exist?('config/application.yml')
 
   puts "\n== Preparing database =="
   system 'bundle exec rake db:create:all db:setup:all --trace'
